@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ project.name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/project_details.css' %}">
+<link rel="stylesheet" href="{% static 'css/skills.css' %}">
+{% endblock %}
+
+{% with page_id="project" %}
+{% block content %}
+<div class="project-container">
+    <div class="project-card">
+        <div class="project-card-header">
+            <a href="{% url 'users:user_detail' project.owner.id %}">
+                <div class="project-card-header-left">
+                    {% if project.owner.avatar %}
+                        <img src="{{ project.owner.avatar.url }}" alt="Аватар автора" class="project-author-avatar">
+                    {% else %}
+                        <img src="{% static 'images/default-avatar.png' %}" alt="Аватар по умолчанию" class="project-author-avatar">
+                    {% endif %}
+                    <div class="project-meta">
+                        <span class="project-author">{{ project.owner.name }} {{ project.owner.surname }}</span>
+                        <span class="project-date">{{ project.created_at|date:"d.m.Y" }}</span>
+                    </div>
+                </div>
+            </a>
+            <div class="project-card-header-right">
+                <span class="project-status-black">
+                    {% if project.status == "open" %}Открыт{% elif project.status == "closed" %}Закрыт{% else %}{{ project.status }}{% endif %}
+                </span>
+            </div>
+        </div>
+
+        <div class="project-card-body">
+            <h2 class="project-title">{{ project.name }}</h2>
+            <p class="project-description">{{ project.description }}</p>
+            {% if project.github_url %}
+            <p class="project-link">
+                {% include 'includes/svg/github.html' %}
+                <a href="{{ project.github_url }}" target="_blank">Репозиторий на GitHub</a>
+            </p>
+            {% endif %}
+        </div>
+
+        <div class="project-actions">
+            <a href="#" class="black-button black-button-share share-button" data-url="{% url 'projects:project_detail' project.id %}">
+                {% include 'includes/svg/share.html' %}
+            </a>
+            {% if user.id == project.owner.id %}
+                <a href="{% url 'projects:project_update' project.id %}" class="black-button">Редактировать</a>
+                {% if project.status == "open" %}
+                    <button class="black-button" id="complete-project-btn" data-id="{{ project.id }}">Завершить проект</button>
+                {% endif %}
+            {% else %}
+                {% if user.is_authenticated %}
+                    <button id="participate-btn" class="black-button"
+                        data-project="{{ project.id }}"
+                        data-user-id="{{ request.user.id }}"
+                        data-user-name="{{ request.user.name }} {{ request.user.surname }}"
+                        data-user-avatar="{% if request.user.avatar %}{{ request.user.avatar.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}">
+                        {% if request.user in project.participants.all %}Отказаться от участия{% else %}Участвовать{% endif %}
+                    </button>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="project-skills">
+        <h3>Необходимые навыки</h3>
+        <div id="skills-container">
+            {% for skill in project.skills.all %}
+                <span class="skill-chip">{{ skill.name }}</span>
+            {% empty %}
+                <p>Навыки не указаны</p>
+            {% endfor %}
+        </div>
+        
+        {% if project.owner.id == request.user.id %}
+        <form method="post" action="{% url 'projects:add_skill' project.id %}" style="margin-top: 15px;">
+            {% csrf_token %}
+            <input type="text" name="name" placeholder="Название навыка" required style="padding: 5px; margin-right: 5px;">
+            <button type="submit" style="padding: 5px 10px;">+ Добавить навык</button>
+        </form>
+        {% endif %}
+    </div>
+
+    <div class="project-participants-card">
+        <h3>Участники проекта ({{ project.participants.all|length }})</h3>
+        <div id="participants-list" class="participants-list">
+            {% for member in project.participants.all %}
+            <a href="{% url 'users:user_detail' member.id %}" id="participant-{{ member.id }}">
+                <div class="participant-item">
+                    {% if member.avatar %}
+                        <img src="{{ member.avatar.url }}" alt="Аватар" class="participant-avatar">
+                    {% else %}
+                        <img src="{% static 'images/default-avatar.png' %}" alt="Аватар по умолчанию" class="participant-avatar">
+                    {% endif %}
+                    <div class="participant-info">
+                        <span class="participant-name">{{ member.name }} {{ member.surname }}</span>
+                        <span class="participant-role">{% if member.id == project.owner.id %}Автор проекта{% else %}Участник{% endif %}</span>
+                    </div>
+                </div>
+            </a>
+            {% empty %}
+            <p>Пока нет участников</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const form = document.querySelector('.project-skills form');
+        if (!form) return;
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+        
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const input = form.querySelector('input[name="name"]');
+            const skillName = input.value.trim();
+            
+            if (!skillName) {
+                alert('Введите название навыка');
+                return;
+            }
+            
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'name=' + encodeURIComponent(skillName)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.added === true || data.skill_id) {
+                    location.reload();
+                } else {
+                    alert('Ошибка: ' + (data.error || 'Не удалось добавить навык'));
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert('Ошибка при добавлении навыка');
+            });
+        });
+    })();
+</script>
+{% endblock %}
+{% endwith %}

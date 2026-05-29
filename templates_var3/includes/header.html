@@ -1,0 +1,61 @@
+{% load static %}
+
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
+<header class="site-header">
+    <div class="container">
+        <div class="header-content">
+            <a href="/projects/list" class="logo-link">TeamFinder</a>
+
+            <nav class="main-nav">
+                <a href="/projects/list" class="nav-link">
+                    {% include 'includes/svg/home.html' %}
+                    <p>Главная</p>
+                </a>
+                <a href="/users/list" class="nav-link">
+                    {% include 'includes/svg/participants.html' %}
+                    <p>Участники</p>
+                </a>
+            </nav>
+
+            <div class="user-actions">
+                {% if request.user.is_authenticated %}
+                <a href="/projects/create-project" class="button nav-link black">
+                    {% include 'includes/svg/plus.html' %}
+                    <p>Создать проект</p>
+                </a>
+                <a class="user-menu nav-link">
+                    {% if request.user.avatar %}
+                        <img src="{{ request.user.avatar.url }}" alt="Аватар" class="avatar">
+                    {% else %}
+                        <img src="{% static 'images/default-avatar.png' %}" alt="Аватар по умолчанию" class="avatar">
+                    {% endif %}
+                    <span class="username">{{ request.user.name }} {{ request.user.surname }}</span>
+                </a>
+                {% else %}
+                <button class="button button-login nav-link" onclick="window.location.href='/users/login/'">
+                    {% include 'includes/svg/login.html' %}
+                    <p>Войти</p>
+                </button>
+                <button class="button button-register nav-link black" onclick="window.location.href='/users/register/'">
+                    {% include 'includes/svg/register.html' %}
+                    <p>Регистрация</p>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</header>
+<div id="userSidebar" class="user-sidebar">
+    <div class="sidebar-content">
+        <a href="/users/{{ request.user.id }}/"><span>{% include 'includes/svg/profile.html' %} Мой профиль</span></a>
+        <a href="/users/edit-profile/"><span>{% include 'includes/svg/settings.html' %} Редактировать профиль</span></a>
+        <a href="/users/change-password/"><span>{% include 'includes/svg/lock.html' %} Сменить пароль</span></a>
+        <a href="#"
+           class="share-button"
+           data-url="/users/{{ request.user.id }}">
+            {% include 'includes/svg/share.html' %} Поделиться профилем
+        </a>
+        <hr class="sidebar-divider">
+        <a href="/users/logout/"><span style="color: #e7000b;">{% include 'includes/svg/leave.html' %} Выйти</span></a>
+    </div>
+</div>

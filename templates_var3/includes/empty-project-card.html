@@ -1,0 +1,8 @@
+{% load static %}
+
+<div class="empty-project-card not-favorite">
+    {% include 'includes/svg/heart.html' %}
+    <h3>{{ empty_title }}</h3>
+    <p>{{ empty_message }}</p>
+    <a href="{% url 'projects:project_create' %}" class="black-button">{{ button_text }}</a>
+</div>

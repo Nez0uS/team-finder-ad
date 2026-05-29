@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if is_edit %}Редактирование проекта{% else %}Создание проекта{% endif %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+<link rel="stylesheet" href="{% static 'css/profile_edit.css' %}">
+<link rel="stylesheet" href="{% static 'css/create-project.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="project-create-container">
+  <h2 class="form-title">{% if is_edit %}Редактирование проекта{% else %}Создание проекта{% endif %}</h2>
+  <form method="post" class="project-create-form">
+    {% csrf_token %}
+
+    <div class="form-field">
+      {{ form.name.label_tag }}
+      {{ form.name }}
+    </div>
+
+    <div class="form-field">
+      {{ form.description.label_tag }}
+      {{ form.description }}
+    </div>
+
+    <div class="form-field">
+      {{ form.github_url.label_tag }}
+      {{ form.github_url }}
+    </div>
+
+    <div class="form-field">
+      {{ form.status.label_tag }}
+      {{ form.status }}
+    </div>
+
+    {% if form.errors %}
+    <div class="form-errors">
+      {% for field, errors in form.errors.items %}
+      {% for error in errors %}
+      <p>{{ error }}</p>
+      {% endfor %}
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="form-actions">
+      <a href="/" class="cancel-button">Отмена</a>
+      <button type="submit" class="save-button">{% if is_edit %}Сохранить{% else %}Опубликовать{% endif %}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

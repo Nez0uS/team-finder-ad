@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Профиль пользователя{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/project_list.css' %}">
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+<link rel="stylesheet" href="{% static 'css/skills.css' %}">
+{% endblock %}
+
+{% with page_id="profile" %}
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-info">
+            {% if user.avatar %}
+                <img src="{{ user.avatar.url }}" alt="Аватар" class="profile-avatar">
+            {% else %}
+                <img src="{% static 'images/default-avatar.png' %}" alt="Аватар по умолчанию" class="profile-avatar">
+            {% endif %}
+            <div class="profile-details">
+                <h2 class="profile-name">{{ user.name }} {{ user.surname }}</h2>
+                <p class="profile-description">
+                    {{ user.about|default:"Описание профиля пока не добавлено." }}
+                </p>
+                <div class="profile-contacts">
+                    {% if user.email %}
+                    <span>{% include 'includes/svg/email.html' %} {{ user.email }}</span>
+                    {% endif %}
+                    {% if user.phone %}
+                    <span>{% include 'includes/svg/phone.html' %} {{ user.phone }}</span>
+                    {% endif %}
+                    {% if user.github_url %}
+                    <span>{% include 'includes/svg/github.html' %}
+                        <a href="{{ user.github_url }}" target="_blank">GitHub</a>
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="profile-actions">
+            <a href="#"
+               class="black-button black-button-share share-button"
+               data-url="/users/{{ user.id }}">
+                {% include 'includes/svg/share.html' %}
+            </a>
+            {% if request.user.id == user.id %}
+            <a href="/users/edit-profile" class="black-button">
+                {% include 'includes/svg/pen.html' %}
+                Редактировать
+            </a>
+            <a href="/projects/create-project" class="black-button">
+                {% include 'includes/svg/plus.html' %}
+                Добавить проект
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <h3>Проекты ({{ user.owned_projects.all|length }})</h3>
+
+    <div class="collapsed-project-grid">
+        {% for project in user.owned_projects.all %}
+        <div class="collapsed-project-card">
+            <div class="collapsed-project-card-header">
+                <h4><a href="/projects/{{ project.id }}">{{ project.name }}</a></h4>
+                <span class="project-status-black">
+                    {% if project.status == "open" %}
+                        Открыт
+                    {% elif project.status == "closed" %}
+                        Закрыт
+                    {% else %}
+                        {{ project.status }}
+                    {% endif %}
+                </span>
+            </div>
+            <div class="collapsed-project-card-body">
+                <div class="collapsed-project-card-description">
+                    <p class="project-card-description">{{ project.description|truncatechars:150 }}</p>
+                </div>
+                <div class="collapsed-project-card-footer">
+                    <p class="project-date">{{ project.created_at|date:"d.m.Y" }}</p>
+                    {% with count=project.participants.count %}
+                    <div class="project-participants">
+                        {% include 'includes/svg/participants.html' %}
+                        {{ count }}
+                        {% if count|add:'-11'|divisibleby:100 or count|add:'-12'|divisibleby:100 or count|add:'-13'|divisibleby:100 or count|add:'-14'|divisibleby:100 %}
+                            участников
+                        {% elif count|add:'-1'|divisibleby:10 %}
+                            участник
+                        {% elif count|add:'-2'|divisibleby:10 or count|add:'-3'|divisibleby:10 or count|add:'-4'|divisibleby:10 %}
+                            участника
+                        {% else %}
+                            участников
+                        {% endif %}
+                    </div>
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p>Пока нет проектов</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+{% endwith %}

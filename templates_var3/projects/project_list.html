@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Актуальные проекты{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/project_list.css' %}">
+{% endblock %}
+
+{% with page_id="projects-list" %}
+{% block content %}
+<div class="project-container">
+    <div class="project-header">
+        <h2 class="project-title">Актуальные проекты</h2>
+    </div>
+    <p class="project-subtitle">Найдите интересный проект и присоединитесь к команде</p>
+
+    <div class="skills-filter">
+        <span class="filter-label">Фильтр по необходимым навыкам:</span>
+        <div class="filter-chips">
+            {% for skill in all_skills %}
+            <a href="?skill={{ skill.name }}"
+               class="filter-chip {% if active_skill == skill.name %}active{% endif %}">
+                {{ skill.name }}
+            </a>
+            {% endfor %}
+            {% if active_skill %}
+            <a href="{% url 'projects:project_list' %}" class="filter-reset">Сбросить</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="projects-grid">
+        {% for project in page_obj %}
+        {% include 'includes/project-card.html' %}
+        {% empty %}
+        <div class="empty-project-card not-favorite">
+            <h3>Пока нет проектов</h3>
+            <p>Создавайте проекты и делитесь ими с другими пользователями!</p>
+            {% if user.is_authenticated %}
+            <a href="{% url 'projects:project_create' %}" class="black-button">+ Создать проект</a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if active_skill %}&skill={{ active_skill }}{% endif %}" class="page-btn">←</a>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <span class="page-btn active">{{ num }}</span>
+        {% else %}
+        <a href="?page={{ num }}{% if active_skill %}&skill={{ active_skill }}{% endif %}" class="page-btn">{{ num }}</a>
+        {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if active_skill %}&skill={{ active_skill }}{% endif %}" class="page-btn">→</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+{% endwith %}

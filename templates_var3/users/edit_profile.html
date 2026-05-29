@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Редактирование профиля{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+<link rel="stylesheet" href="{% static 'css/profile_edit.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-edit-container">
+    <h2 class="form-title">Редактирование профиля</h2>
+    <form method="post" enctype="multipart/form-data" class="profile-edit-form">
+        {% csrf_token %}
+
+        <div class="avatar-upload">
+            <div class="avatar-preview">
+                {% if user.avatar %}
+                    <img src="{{ user.avatar.url }}" alt="Аватар">
+                {% else %}
+                    <img src="{% static 'images/default-avatar.png' %}" alt="Аватар по умолчанию">
+                {% endif %}
+                <div class="overlay">
+                    <button type="button" onclick="document.getElementById('id_avatar').click()">Заменить</button>
+                </div>
+            </div>
+            {{ form.avatar }}
+        </div>
+
+        <div class="form-row">
+            <div class="form-field">
+                {{ form.name.label_tag }}
+                {{ form.name }}
+            </div>
+            <div class="form-field">
+                {{ form.surname.label_tag }}
+                {{ form.surname }}
+            </div>
+        </div>
+
+        <div class="form-field">
+            {{ form.about.label_tag }}
+            {{ form.about }}
+        </div>
+
+        <div class="form-row">
+            <div class="form-field">
+                {{ form.phone.label_tag }}
+                {{ form.phone }}
+            </div>
+            <div class="form-field">
+                {{ form.github_url.label_tag }}
+                {{ form.github_url }}
+            </div>
+        </div>
+
+        {% if form.errors %}
+        <div class="form-errors">
+            {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="form-actions">
+            <a href="/users/{{ user.id }}" class="cancel-button">Отмена</a>
+            <button type="submit" class="save-button">Сохранить</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
