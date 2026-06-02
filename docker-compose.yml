@@ -1,13 +1,37 @@
 services:
   db:
     image: postgres:16
-    env_file:
-      - .env
+    environment:
+      POSTGRES_DB: team_finder
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: team_finder
     container_name: teamfinder_db
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d team_finder"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build: .
+    container_name: teamfinder_web
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      - DJANGO_SETTINGS_MODULE=team_finder.settings
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     restart: always
 
 volumes:
